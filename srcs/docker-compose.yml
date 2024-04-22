@@ -1,0 +1,65 @@
+# version: "3.8"
+
+services:
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    restart: on-failure
+    env_file: ./.env
+    networks:
+      - inception
+    volumes:
+      - db:/var/lib/mysql
+    build: ./requirements/mariadb/
+    expose:
+      - 3306
+    
+
+  nginx:
+    depends_on: 
+      - wordpress
+    image: nginx
+    container_name: nginx
+    restart: on-failure
+    ports:
+      - "443:443"
+    networks: 
+      - inception
+    volumes:
+      - word:/var/www/wordpress
+    build: ./requirements/nginx/
+    
+
+  wordpress :
+    image: wordpress
+    container_name: wordpress
+    env_file: ./.env
+    restart: on-failure
+    volumes: 
+      - word:/var/www/wordpress/
+    depends_on: 
+      - mariadb
+    networks: 
+      - inception
+    build: requirements/wordpress
+
+volumes:
+  word:
+    name: word
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/yakhay/data/word/'
+  db:
+    name: db
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/yakhay/data/db/'
+
+
+networks:
+  inception:
+    name : inception
